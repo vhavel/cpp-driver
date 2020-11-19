@@ -68,6 +68,8 @@ StartupCallback::StartupCallback(Connector* connector, const Request::ConstPtr& 
 void StartupCallback::on_internal_set(ResponseMessage* response) {
   switch (response->opcode()) {
     case CQL_OPCODE_SUPPORTED:
+      LOG_INFO("4) Options time %f ms", (double)(uv_hrtime() - connector_->start_) / (1000.0 * 1000.0));
+      connector_->start_ = uv_hrtime();
       connector_->on_supported(response);
       break;
 
@@ -89,6 +91,8 @@ void StartupCallback::on_internal_set(ResponseMessage* response) {
     }
 
     case CQL_OPCODE_AUTHENTICATE: {
+      LOG_INFO("5) Startup (authenticate) time %f ms", (double)(uv_hrtime() - connector_->start_) / (1000.0 * 1000.0));
+      connector_->start_ = uv_hrtime();
       AuthenticateResponse* auth =
           static_cast<AuthenticateResponse*>(response->response_body().get());
       connector_->on_authenticate(auth->class_name());
@@ -96,22 +100,29 @@ void StartupCallback::on_internal_set(ResponseMessage* response) {
     }
 
     case CQL_OPCODE_AUTH_CHALLENGE:
+      LOG_INFO("6) Auth challenge time %f ms", (double)(uv_hrtime() - connector_->start_) / (1000.0 * 1000.0));
+      connector_->start_ = uv_hrtime();
       connector_->on_auth_challenge(
           static_cast<const AuthResponseRequest*>(request()),
           static_cast<AuthChallengeResponse*>(response->response_body().get())->token());
       break;
 
     case CQL_OPCODE_AUTH_SUCCESS:
+      LOG_INFO("6) Auth success time %f ms", (double)(uv_hrtime() - connector_->start_) / (1000.0 * 1000.0));
+      connector_->start_ = uv_hrtime();
       connector_->on_auth_success(
           static_cast<const AuthResponseRequest*>(request()),
           static_cast<AuthSuccessResponse*>(response->response_body().get())->token());
       break;
 
     case CQL_OPCODE_READY:
+      LOG_INFO("6) Startup (ready) time %f ms", (double)(uv_hrtime() - connector_->start_) / (1000.0 * 1000.0));
+      connector_->start_ = uv_hrtime();
       connector_->on_ready_or_register_for_events();
       break;
 
     case CQL_OPCODE_RESULT:
+      connector_->start_ = uv_hrtime();
       on_result_response(response);
       break;
 
@@ -346,6 +357,7 @@ void Connector::on_connect(SocketConnector* socket_connector) {
       socket->set_handler(new ConnectionHandler(connection_.get()));
     }
 
+    start_ = uv_hrtime();
     connection_->write_and_flush(
         RequestCallback::Ptr(new StartupCallback(this, Request::ConstPtr(new OptionsRequest()))));
 

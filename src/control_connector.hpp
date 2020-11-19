@@ -222,6 +222,7 @@ private:
   Metrics* metrics_;
   Host::Ptr host_;
   ControlConnectionSettings settings_;
+  uint64_t start_;
 };
 
 }}} // namespace datastax::internal::core

@@ -115,6 +115,7 @@ SocketConnector* SocketConnector::with_settings(const SocketSettings& settings) 
 
 void SocketConnector::connect(uv_loop_t* loop) {
   inc_ref(); // For the event loop
+  start_ = uv_hrtime();
 
   if (!address_.is_resolved()) { // Address not resolved
     hostname_ = address_.hostname_or_address();
@@ -225,6 +226,7 @@ void SocketConnector::ssl_handshake() {
 }
 
 void SocketConnector::finish() {
+  LOG_INFO("3) TLS handshake time %f ms", (double)(uv_hrtime() - start_) / (1000.0 * 1000.0));
   if (socket_) socket_->set_handler(NULL);
   callback_(this);
   // If the socket hasn't been released then close it.
@@ -249,6 +251,8 @@ void SocketConnector::on_error(SocketError code, const String& message) {
 }
 
 void SocketConnector::on_connect(TcpConnector* tcp_connector) {
+  LOG_INFO("2) Socket connect time %f ms", (double)(uv_hrtime() - start_) / (1000.0 * 1000.0));
+  start_ = uv_hrtime();
   if (tcp_connector->is_success()) {
     LOG_DEBUG("Connected to host %s on socket(%p)", address_.to_string().c_str(),
               static_cast<void*>(this));
@@ -282,6 +286,9 @@ void SocketConnector::on_connect(TcpConnector* tcp_connector) {
 }
 
 void SocketConnector::on_resolve(Resolver* resolver) {
+  LOG_INFO("1) Resolve time %f ms", (double)(uv_hrtime() - start_) / (1000.0 * 1000.0));
+  start_ = uv_hrtime();
+
   if (resolver->is_success()) {
     const AddressVec& addresses(resolver->addresses());
     LOG_DEBUG("Resolved the addresses %s for hostname %s", to_string(addresses).c_str(),

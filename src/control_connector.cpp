@@ -190,6 +190,7 @@ void ControlConnector::on_connect(Connector* connector) {
 }
 
 void ControlConnector::query_hosts() {
+  start_ = uv_hrtime();
   // This needs to happen before other schema metadata queries so that we have
   // a valid server version because this version determines which follow up
   // schema metadata queries are executed.
@@ -203,6 +204,8 @@ void ControlConnector::query_hosts() {
 }
 
 void ControlConnector::handle_query_hosts(HostsConnectorRequestCallback* callback) {
+  LOG_INFO("7) Query hosts %f ms", (double)(uv_hrtime() - start_) / (1000.0 * 1000.0));
+  start_ = uv_hrtime();
   ResultResponse::Ptr local_result(callback->result("local"));
   const Host::Ptr& connected_host = connection_->host();
   if (local_result && local_result->row_count() > 0) {
@@ -240,6 +243,7 @@ void ControlConnector::handle_query_hosts(HostsConnectorRequestCallback* callbac
 }
 
 void ControlConnector::query_schema() {
+  start_ = uv_hrtime();
   ChainedRequestCallback::Ptr callback;
 
   if (server_version_ >= VersionNumber(3, 0, 0)) {
@@ -283,6 +287,7 @@ void ControlConnector::query_schema() {
 }
 
 void ControlConnector::handle_query_schema(SchemaConnectorRequestCallback* callback) {
+  LOG_INFO("8) Query schema %f ms", (double)(uv_hrtime() - start_) / (1000.0 * 1000.0));
   schema_.keyspaces = callback->result("keyspaces");
   schema_.tables = callback->result("tables");
   schema_.views = callback->result("views");

@@ -43,6 +43,8 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  cass_log_set_level(CASS_LOG_INFO);
+
   secure_connect_bundle = argv[1];
   username = argv[2];
   password = argv[3];
@@ -56,6 +58,8 @@ int main(int argc, char* argv[]) {
             secure_connect_bundle);
   }
 
+  //cass_cluster_set_core_connections_per_host(cluster, 10);
+  cass_cluster_set_core_connections_per_host(cluster, 1);
   cass_cluster_set_credentials(cluster, username, password);
 
   /* Provide the cluster object as configuration to connect the session */

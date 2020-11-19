@@ -168,6 +168,8 @@ private:
   ScopedPtr<SslSession> ssl_session_;
 
   SocketSettings settings_;
+
+  uint64_t start_;
 };
 
 }}} // namespace datastax::internal::core

@@ -227,6 +227,8 @@ private:
   ConnectionListener* listener_;
   Metrics* metrics_;
   ConnectionSettings settings_;
+  uint64_t start_;
+  uint64_t auth_start_;
 };
 
 }}} // namespace datastax::internal::core

@@ -23,6 +23,7 @@
 #include "string.hpp"
 #include "timer.hpp"
 #include "vector.hpp"
+#include "event_loop.hpp"
 
 #include <uv.h>
 
@@ -70,6 +71,14 @@ public:
 
   void resolve(uv_loop_t* loop, uint64_t timeout, struct addrinfo* hints = NULL) {
     status_ = RESOLVING;
+
+    if (is_resolved(Address(hostname_, port_), addresses_)) {
+      status_ = SUCCESS;
+      uv_status_ = 0;
+      req_.loop = loop;
+      callback_(this);
+      return;
+    }
 
     inc_ref(); // For the event loop
 
@@ -119,6 +128,9 @@ private:
       } else if (!resolver->init_addresses(res)) {
         resolver->status_ = FAILED_UNSUPPORTED_ADDRESS_FAMILY;
       } else {
+
+        add_resolved(Address(resolver->hostname(), resolver->port()), resolver->addresses());
+
         resolver->status_ = SUCCESS;
       }
     }
@@ -148,6 +160,11 @@ private:
     } while (res);
     return status;
   }
+
+private:
+  static bool is_resolved(const Address& hostname, AddressVec& cached);
+
+  static void add_resolved(const Address& hostname, const AddressVec& addresses);
 
 private:
   uv_getaddrinfo_t req_;
