@@ -192,18 +192,18 @@ CassValueType cass_value_secondary_sub_type(const CassValue* collection) {
 
 } // extern "C"
 
-Value::Value(const DataType::ConstPtr& data_type, Decoder decoder)
-    : data_type_(data_type)
+Value::Value(DataType::ConstPtr data_type, Decoder decoder)
+    : data_type_(std::move(data_type))
     , count_(0)
     , decoder_(decoder)
     , is_null_(false) {
-  assert(!data_type->is_collection());
-  if (data_type->is_tuple()) {
-    SharedRefPtr<const CompositeType> composite_type(data_type);
-    count_ = composite_type->types().size();
-  } else if (data_type->is_user_type()) {
-    UserType::ConstPtr user_type(data_type);
-    count_ = user_type->fields().size();
+  assert(!data_type_->is_collection());
+  if (data_type_->is_tuple()) {
+    const CompositeType& composite_type = static_cast<const CompositeType&>(*data_type_);
+    count_ = composite_type.types().size();
+  } else if (data_type_->is_user_type()) {
+    const UserType& user_type = static_cast<const UserType&>(*data_type_);
+    count_ = user_type.fields().size();
   } else {
     count_ = 0;
   }

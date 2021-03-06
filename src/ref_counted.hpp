@@ -70,6 +70,11 @@ public:
     copy<T>(ref.ptr_);
   }
 
+  SharedRefPtr(SharedRefPtr<T>&& ref)
+      : ptr_(ref.ptr_) {
+    ref.ptr_ = NULL;
+  }
+
   template <class S>
   SharedRefPtr(const SharedRefPtr<S>& ref)
       : ptr_(NULL) {
@@ -78,6 +83,15 @@ public:
 
   SharedRefPtr<T>& operator=(const SharedRefPtr<T>& ref) {
     copy<T>(ref.ptr_);
+    return *this;
+  }
+
+  SharedRefPtr<T>& operator=(SharedRefPtr<T>&& ref) {
+    if (ptr_ != NULL) {
+      ptr_->dec_ref();
+    }
+    ptr_ = ref.ptr_;
+    ref.ptr_ = NULL;
     return *this;
   }
 

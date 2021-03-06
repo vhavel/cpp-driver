@@ -138,7 +138,7 @@ bool Decoder::decode_warnings(WarningVec& output) {
   return true;
 }
 
-bool Decoder::decode_value(const DataType::ConstPtr& data_type, Value& output,
+bool Decoder::decode_value(DataType::ConstPtr data_type, Value& output,
                            bool is_inside_collection /*= false*/) {
   const char* buffer = NULL;
   int32_t size = 0;
@@ -156,12 +156,12 @@ bool Decoder::decode_value(const DataType::ConstPtr& data_type, Value& output,
     if (data_type->is_collection()) {
       int32_t count;
       if (!decoder.decode_int32(count)) return false;
-      output = Value(data_type, count, decoder);
+      output = Value(std::move(data_type), count, decoder);
     } else {
-      output = Value(data_type, decoder);
+      output = Value(std::move(data_type), decoder);
     }
   } else { // null value
-    output = Value(data_type);
+    output = Value(std::move(data_type));
   }
 
   return true;

@@ -32,17 +32,17 @@ public:
       , is_null_(false) {}
 
   // Used for "null" values
-  Value(const DataType::ConstPtr& data_type)
-      : data_type_(data_type)
+  Value(DataType::ConstPtr data_type)
+      : data_type_(std::move(data_type))
       , count_(0)
       , is_null_(true) {}
 
   // Used for regular values, tuples, and UDTs
-  Value(const DataType::ConstPtr& data_type, Decoder decoder);
+  Value(DataType::ConstPtr data_type, Decoder decoder);
 
   // Used for collections and schema metadata collections (converted from JSON)
-  Value(const DataType::ConstPtr& data_type, int32_t count, Decoder decoder)
-      : data_type_(data_type)
+  Value(DataType::ConstPtr data_type, int32_t count, Decoder decoder)
+      : data_type_(std::move(data_type))
       , count_(count)
       , decoder_(decoder)
       , is_null_(false) {}

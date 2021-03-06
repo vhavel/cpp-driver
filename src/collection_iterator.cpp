@@ -35,7 +35,7 @@ bool CollectionIterator::decode_value() {
     data_type = collection_->primary_data_type();
   }
 
-  return decoder_.decode_value(data_type, value_, true);
+  return decoder_.decode_value(std::move(data_type), value_, true);
 }
 
 bool TupleIterator::next() {
